@@ -37,6 +37,11 @@ The timeout is refreshed by every valid DATA frame and expires 15 seconds
 after the last one, allowing a receiver that lost END to acquire a later
 control announcement instead of remaining stranded on the test profile.
 
+`SIGINT` and `SIGTERM` abort transmission immediately. A dedicated signal
+thread first drives PTT inactive and then exits without draining queued ALSA
+audio or transmitting the remainder of the series. `SIGKILL` cannot provide
+this guarantee and must not be used to stop a transmitting benchmark.
+
 The append-only CSV records packet delivery, duplicates, elapsed time,
 payload goodput, physical decode attempts, decoded frames, FEC failures, mean
 EVM, mean effective SNR, ALSA capture XRUNs, and whether the block completed

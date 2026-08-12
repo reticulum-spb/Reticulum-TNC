@@ -12,17 +12,20 @@
 
 #include <errno.h>
 #include <math.h>
+#include <pthread.h>
 #include <signal.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 enum { ANNOUNCE_REPEATS = 5U,
        END_REPEATS = 3U,
        MAX_PACKETS = 1000U };
 
-static volatile sig_atomic_t stopped;
+static _Atomic(rtnc_ptt_t *) active_ptt;
 
 typedef struct {
     rtnc_modem_t                     modem;
@@ -38,9 +41,17 @@ typedef struct {
     double                           snr_sum_db;
 } receiver_phy_t;
 
-static void stop_handler(int signal_number) {
-    (void) signal_number;
-    stopped = 1;
+static void *signal_wait_main(void *argument) {
+    sigset_t *signals = argument;
+    int       signal_number = 0;
+    if (sigwait(signals, &signal_number) == 0) {
+        rtnc_ptt_t *ptt = atomic_load_explicit(&active_ptt, memory_order_acquire);
+        if (ptt != NULL) {
+            (void) rtnc_ptt_set(ptt, false);
+        }
+        _exit(128 + signal_number);
+    }
+    return NULL;
 }
 
 static uint64_t monotonic_ms(void) {
@@ -152,7 +163,8 @@ static int run_tx(
         (void) fprintf(stderr, "TX platform initialization failed\n");
         goto done;
     }
-    for (block = 0U; block < config->profiles_count && !stopped; ++block) {
+    atomic_store_explicit(&active_ptt, &ptt, memory_order_release);
+    for (block = 0U; block < config->profiles_count; ++block) {
         const rtnc_phy_profile_config_t *test = &config->profiles[block];
         rtnc_ota_benchmark_message_t     message = {
                 .type = RTNC_OTA_BENCHMARK_ANNOUNCE,
@@ -183,8 +195,9 @@ static int run_tx(
         (void) fflush(stdout);
         (void) sleep_ms(1000U);
     }
-    result = stopped ? 130 : 0;
+    result = 0;
 done:
+    atomic_store_explicit(&active_ptt, NULL, memory_order_release);
     rtnc_ptt_deinit(&ptt);
     rtnc_audio_deinit(&audio);
     return result;
@@ -301,7 +314,7 @@ static int run_rx(
         goto done;
     }
     (void) printf("benchmark RX control_profile=%s report=%s\n", control_name, report_name);
-    while (!stopped) {
+    for (;;) {
         size_t sample_index;
         if (deadline != 0U && monotonic_ms() > deadline) {
             write_report(report, &active, received, duplicates, block_started, &receiver, &audio, "timeout");
@@ -427,6 +440,8 @@ done:
 int main(int argc, char **argv) {
     rtnc_platform_config_t *config = NULL;
     const char             *control_name;
+    sigset_t                signals;
+    pthread_t               signal_thread;
     int                     result;
     if (argc < 5 || argc > 6 ||
         (strcmp(argv[2], "rx") != 0 && strcmp(argv[2], "tx") != 0)) {
@@ -436,8 +451,14 @@ int main(int argc, char **argv) {
                        argv[0]);
         return 2;
     }
-    (void) signal(SIGINT, stop_handler);
-    (void) signal(SIGTERM, stop_handler);
+    (void) sigemptyset(&signals);
+    (void) sigaddset(&signals, SIGINT);
+    (void) sigaddset(&signals, SIGTERM);
+    if (pthread_sigmask(SIG_BLOCK, &signals, NULL) != 0 ||
+        pthread_create(&signal_thread, NULL, signal_wait_main, &signals) != 0) {
+        (void) fprintf(stderr, "signal safety initialization failed\n");
+        return 1;
+    }
     if (!rtnc_platform_config_load(argv[1], &config)) {
         (void) fprintf(stderr, "invalid configuration\n");
         return 2;
