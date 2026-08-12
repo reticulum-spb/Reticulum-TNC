@@ -42,6 +42,7 @@ not silently accept a nearby sample rate.
 | Field | Allowed values | Meaning |
 |---|---|---|
 | `profile` | name of `1..31` characters present in `profiles` | Default profile used by tools that do not receive a profile name on the command line. Names are case-sensitive. |
+| `control_profile` | optional, different profile name present in `profiles` | Enables a second receive-only detector with the control preamble. Omit the field to disable the second detector and its CPU/memory cost. Normal transmission continues to use `profile`; callers that need control transmission explicitly use an initialized control modem pointer. |
 
 `rtnc_modem` can select any profile without modifying the YAML:
 
@@ -103,7 +104,7 @@ audio bandwidth of a particular NFM radio.
 A complete profile must also fit one maximum physical frame in the fixed
 90,000-sample realtime buffer. For example, BPSK-600 with ROBUST FEC and a
 64-byte payload class is rejected because its frame is too long; use
-`bpsk_750_robust64` or `bpsk_1200_robust64` instead.
+`bpsk_750_1_64` or `bpsk_1200_1_64` instead.
 
 ### Calculated profile rates
 

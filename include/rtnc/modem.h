@@ -41,6 +41,11 @@ typedef enum {
     RTNC_MODEM_DSP_ERROR,
 } rtnc_modem_status_t;
 
+typedef enum {
+    RTNC_PREAMBLE_DATA = 0,
+    RTNC_PREAMBLE_CONTROL = 1,
+} rtnc_preamble_t;
+
 typedef struct {
     rtnc_phy_profile_t profile;
     rtnc_psk_t         psk;
@@ -50,6 +55,7 @@ typedef struct {
     rtnc_equalizer_t   equalizer;
     fec_mode_t         fec_mode;
     uint8_t            payload_class_bytes;
+    rtnc_preamble_t    preamble;
     float complex      training[RTNC_MODEM_TRAINING_SYMBOLS];
 } rtnc_modem_t;
 
@@ -84,6 +90,8 @@ bool rtnc_modem_init(rtnc_modem_t *modem);
 bool rtnc_modem_init_config(rtnc_modem_t *modem, fec_mode_t fec_mode, uint8_t payload_class_bytes);
 /** Initialize a modem with a fixed, preselected PHY profile. */
 bool rtnc_modem_init_profile(rtnc_modem_t *modem, fec_mode_t fec_mode, uint8_t payload_class_bytes, const rtnc_phy_profile_t *profile);
+/** Initialize a profile with either the data or low-cross-correlation control preamble. */
+bool rtnc_modem_init_profile_preamble(rtnc_modem_t *modem, fec_mode_t fec_mode, uint8_t payload_class_bytes, const rtnc_phy_profile_t *profile, rtnc_preamble_t preamble);
 void rtnc_modem_deinit(rtnc_modem_t *modem);
 
 /** Audio samples required by a maximum-payload frame in this fixed profile. */

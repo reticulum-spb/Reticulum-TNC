@@ -27,6 +27,7 @@ static const cyaml_schema_field_t audio_fields[] = {
 
 static const cyaml_schema_field_t modem_fields[] = {
     CYAML_FIELD_STRING_PTR("profile", CYAML_FLAG_POINTER, rtnc_modem_config_t, profile, 1U, 31U),
+    CYAML_FIELD_STRING_PTR("control_profile", CYAML_FLAG_POINTER | CYAML_FLAG_OPTIONAL, rtnc_modem_config_t, control_profile, 1U, 31U),
     CYAML_FIELD_END,
 };
 
@@ -135,6 +136,14 @@ static bool platform_config_is_valid(const rtnc_platform_config_t *config) {
         config->modem.profile == NULL || config->profiles == NULL ||
         config->profiles_count == 0U ||
         !platform_phy_profile(config, &profile)) {
+        return false;
+    }
+    if (config->modem.control_profile != NULL &&
+        (strcmp(config->modem.control_profile, config->modem.profile) == 0 ||
+         rtnc_platform_profile_config_named(
+             config,
+             config->modem.control_profile
+         ) == NULL)) {
         return false;
     }
     for (index = 0U; index < config->profiles_count; ++index) {

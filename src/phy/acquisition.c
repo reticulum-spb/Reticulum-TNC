@@ -89,3 +89,47 @@ bool rtnc_acquisition_detector_process(rtnc_acquisition_detector_t *detector, fl
     }
     return *score >= detector->threshold;
 }
+
+bool rtnc_acquisition_detector_init_modem(rtnc_acquisition_detector_t *detector, rtnc_modem_t *modem, size_t stride_samples) {
+    if (modem == NULL || !rtnc_acquisition_detector_init(
+                             detector,
+                             &modem->profile,
+                             modem->training,
+                             stride_samples,
+                             modem->profile.acquisition_threshold
+                         )) {
+        return false;
+    }
+    detector->modem = modem;
+    return true;
+}
+
+bool rtnc_acquisition_detector_process_two(rtnc_acquisition_detector_t *first, rtnc_acquisition_detector_t *second, float audio_sample, rtnc_modem_t **detected_modem, float *first_score, float *second_score) {
+    bool first_trigger;
+    bool second_trigger = false;
+    if (first == NULL || detected_modem == NULL || first_score == NULL ||
+        second_score == NULL || first->modem == NULL) {
+        return false;
+    }
+    *detected_modem = NULL;
+    first_trigger = rtnc_acquisition_detector_process(first, audio_sample, first_score);
+    *second_score = 0.0F;
+    if (second != NULL) {
+        if (second->modem == NULL) {
+            return false;
+        }
+        second_trigger = rtnc_acquisition_detector_process(second, audio_sample, second_score);
+    }
+    if (!first_trigger && !second_trigger) {
+        return false;
+    }
+    if (second_trigger &&
+        (!first_trigger ||
+         (*second_score - second->threshold) >
+             (*first_score - first->threshold))) {
+        *detected_modem = second->modem;
+    } else {
+        *detected_modem = first->modem;
+    }
+    return true;
+}

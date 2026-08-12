@@ -37,6 +37,93 @@ int main(void) {
     rtnc_acquisition_detector_deinit(&detector);
     rtnc_modem_deinit(&modem);
 
+    /* Two detector pointers distinguish identical PHY profiles solely by the
+     * preamble and return the exact modem pointer selected for decoding. */
+    {
+        rtnc_modem_t                       data_modem;
+        rtnc_modem_t                       control_modem;
+        const rtnc_phy_profile_t           profile = rtnc_phy_profile_qpsk_1200();
+        static rtnc_acquisition_detector_t data_detector;
+        static rtnc_acquisition_detector_t control_detector;
+        rtnc_modem_t                      *selected = NULL;
+        bool                               data_seen = false;
+        bool                               control_seen = false;
+        assert(rtnc_modem_init_profile_preamble(
+            &data_modem,
+            FEC_LDPC_ROBUST,
+            64U,
+            &profile,
+            RTNC_PREAMBLE_DATA
+        ));
+        assert(rtnc_modem_init_profile_preamble(
+            &control_modem,
+            FEC_LDPC_ROBUST,
+            64U,
+            &data_modem.profile,
+            RTNC_PREAMBLE_CONTROL
+        ));
+        assert(rtnc_acquisition_detector_init_modem(
+            &data_detector,
+            &data_modem,
+            4U
+        ));
+        assert(rtnc_acquisition_detector_init_modem(
+            &control_detector,
+            &control_modem,
+            4U
+        ));
+        assert(rtnc_modem_tx_audio(&data_modem, payload, sizeof(payload), audio, RTNC_MODEM_MAX_AUDIO_SAMPLES, &sample_count) == RTNC_MODEM_OK);
+        for (index = 0U; index < sample_count; ++index) {
+            float first_score;
+            float second_score;
+            if (rtnc_acquisition_detector_process_two(
+                    &data_detector,
+                    &control_detector,
+                    audio[index],
+                    &selected,
+                    &first_score,
+                    &second_score
+                )) {
+                data_seen = selected == &data_modem;
+                break;
+            }
+        }
+        assert(data_seen);
+        rtnc_acquisition_detector_deinit(&data_detector);
+        rtnc_acquisition_detector_deinit(&control_detector);
+        assert(rtnc_acquisition_detector_init_modem(
+            &data_detector,
+            &data_modem,
+            4U
+        ));
+        assert(rtnc_acquisition_detector_init_modem(
+            &control_detector,
+            &control_modem,
+            4U
+        ));
+        assert(rtnc_modem_tx_audio(&control_modem, payload, sizeof(payload), audio, RTNC_MODEM_MAX_AUDIO_SAMPLES, &sample_count) == RTNC_MODEM_OK);
+        for (index = 0U; index < sample_count; ++index) {
+            float first_score;
+            float second_score;
+            if (rtnc_acquisition_detector_process_two(
+                    &data_detector,
+                    &control_detector,
+                    audio[index],
+                    &selected,
+                    &first_score,
+                    &second_score
+                )) {
+                control_seen = selected == &control_modem;
+                break;
+            }
+        }
+        assert(control_seen);
+        rtnc_acquisition_detector_deinit(&data_detector);
+        rtnc_acquisition_detector_deinit(&control_detector);
+        rtnc_modem_deinit(&control_modem);
+        rtnc_modem_deinit(&data_modem);
+    }
+
     /* A continuous carrier may contain adjacent independently framed packets.
      * The streaming trigger must reopen after each fixed-length candidate. */
     {

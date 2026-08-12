@@ -7,14 +7,13 @@
 
 enum {
     RTNC_OTA_BENCHMARK_VERSION = 1U,
-    RTNC_OTA_BENCHMARK_PROFILE_MAX = 31U,
+    RTNC_OTA_BENCHMARK_PROFILE_MAX = 20U,
     RTNC_OTA_BENCHMARK_HEADER_SIZE = 56U,
 };
 
 typedef enum {
     RTNC_OTA_BENCHMARK_ANNOUNCE = 1,
     RTNC_OTA_BENCHMARK_DATA = 2,
-    RTNC_OTA_BENCHMARK_END = 3,
 } rtnc_ota_benchmark_type_t;
 
 typedef struct {

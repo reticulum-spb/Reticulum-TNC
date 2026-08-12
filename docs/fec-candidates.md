@@ -62,8 +62,8 @@ modulation, baud rate, payload class, or FEC.
 
 `FEC_LDPC_FAST` is reserved but unsupported and is rejected by the YAML
 configuration validator. Ready-to-use QPSK-1600 profile names are
-`qpsk_1600_robust64`, `qpsk_1600_robust128`, `qpsk_1600_normal64`, and
-`qpsk_1600_normal128`. The suffix selects the independently protected physical
+`qpsk_1600_1_64`, `qpsk_1600_1_128`, `qpsk_1600_2_64`, and
+`qpsk_1600_2_128`. The suffix selects the independently protected physical
 payload class, not a Reticulum MTU.
 
 ## Implemented validation code

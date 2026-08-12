@@ -83,7 +83,7 @@ calculation is an airtime baseline, not a reliability result.
 
 ## Selection
 
-The original QPSK-only sweep retained `qpsk_1200_robust64`, but the subsequent
+The original QPSK-only sweep retained `qpsk_1200_1_64`, but the subsequent
 lower-baud experiment below makes `turbo` (8PSK-1000 ROBUST/64) the leading
 experimental candidate. The production default is not changed yet. Fragmentation and
 Reticulum integration remain gated on a direct, repeatable FreeDV/PSK
@@ -230,8 +230,8 @@ The over-the-air result did not justify promoting either profile:
 
 | Profile | Raw rate | Interface ceiling | OTA result |
 |---|---:|---:|---:|
-| `experimental_16psk_750` ROBUST/64 | 3000 bit/s | 945 bit/s | 0/5 complete 500-byte packets |
-| `experimental_16psk_1000` ROBUST/64 | 4000 bit/s | 1260 bit/s | 0/1 complete 500-byte packets; about 4/8 physical fragments decoded |
+| `16psk750_exp` ROBUST/64 | 3000 bit/s | 945 bit/s | 0/5 complete 500-byte packets |
+| `16psk1000_exp` ROBUST/64 | 4000 bit/s | 1260 bit/s | 0/1 complete 500-byte packets; about 4/8 physical fragments decoded |
 | `turbo` 8PSK-1000 ROBUST/64 control | 3000 bit/s | 1016 bit/s | 1/1 complete 500-byte packet, 8/8 fragments |
 
 There were no audio, decode-queue, or ALSA XRUN drops. For 16PSK-1000 the

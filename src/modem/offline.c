@@ -38,6 +38,41 @@ static const uint8_t acquisition_symbols[RTNC_MODEM_ACQUISITION_SYMBOLS] = {
     0U,
 };
 
+static const uint8_t control_acquisition_symbols[RTNC_MODEM_ACQUISITION_SYMBOLS] = {
+    3U,
+    0U,
+    2U,
+    1U,
+    0U,
+    2U,
+    2U,
+    3U,
+    1U,
+    3U,
+    0U,
+    1U,
+    2U,
+    1U,
+    0U,
+    3U,
+    0U,
+    1U,
+    3U,
+    3U,
+    2U,
+    0U,
+    1U,
+    2U,
+    3U,
+    2U,
+    1U,
+    0U,
+    1U,
+    3U,
+    2U,
+    0U,
+};
+
 static size_t payload_symbol_count(size_t byte_count, uint8_t bits_per_symbol) {
     return (byte_count * 8U + (size_t) bits_per_symbol - 1U) /
            (size_t) bits_per_symbol;
@@ -84,12 +119,20 @@ bool rtnc_modem_init_config(rtnc_modem_t *modem, fec_mode_t fec_mode, uint8_t pa
 }
 
 bool rtnc_modem_init_profile(rtnc_modem_t *modem, fec_mode_t fec_mode, uint8_t payload_class_bytes, const rtnc_phy_profile_t *profile) {
+    return rtnc_modem_init_profile_preamble(modem, fec_mode, payload_class_bytes, profile, RTNC_PREAMBLE_DATA);
+}
+
+bool rtnc_modem_init_profile_preamble(rtnc_modem_t *modem, fec_mode_t fec_mode, uint8_t payload_class_bytes, const rtnc_phy_profile_t *profile, rtnc_preamble_t preamble) {
     size_t   index;
-    uint32_t bpsk_training_state = 0x9e3779b9U;
+    uint32_t bpsk_training_state = preamble == RTNC_PREAMBLE_DATA
+                                       ? UINT32_C(0x9e3779b9)
+                                       : UINT32_C(0x243f6a88);
     if (modem == NULL || !rtnc_phy_profile_is_valid(profile) ||
         (payload_class_bytes != 64U && payload_class_bytes != 128U) ||
         (fec_mode != FEC_NONE && fec_mode != FEC_LDPC_ROBUST &&
-         fec_mode != FEC_LDPC_NORMAL)) {
+         fec_mode != FEC_LDPC_NORMAL) ||
+        (preamble != RTNC_PREAMBLE_DATA &&
+         preamble != RTNC_PREAMBLE_CONTROL)) {
         return false;
     }
     if (profile->modulation != RTNC_MODULATION_BPSK &&
@@ -100,6 +143,7 @@ bool rtnc_modem_init_profile(rtnc_modem_t *modem, fec_mode_t fec_mode, uint8_t p
     modem->profile = *profile;
     modem->fec_mode = fec_mode;
     modem->payload_class_bytes = payload_class_bytes;
+    modem->preamble = preamble;
     if (!rtnc_psk_init(&modem->psk, modem->profile.modulation) ||
         !rtnc_rrc_init(&modem->rrc, modem->profile.samples_per_symbol, RTNC_MODEM_RRC_DELAY_SYMBOLS, modem->profile.rrc_rolloff) ||
         !rtnc_timing_init(&modem->timing, modem->profile.samples_per_symbol, RTNC_MODEM_RRC_DELAY_SYMBOLS, modem->profile.rrc_rolloff, 0.03F) ||
@@ -116,7 +160,10 @@ bool rtnc_modem_init_profile(rtnc_modem_t *modem, fec_mode_t fec_mode, uint8_t p
             bpsk_training_state ^= bpsk_training_state << 5U;
             value = (uint8_t) (bpsk_training_state & 1U);
         } else if (index < RTNC_MODEM_ACQUISITION_SYMBOLS) {
-            value = (uint8_t) (acquisition_symbols[index] *
+            const uint8_t *sequence = preamble == RTNC_PREAMBLE_DATA
+                                          ? acquisition_symbols
+                                          : control_acquisition_symbols;
+            value = (uint8_t) (sequence[index] *
                                (modem->profile.bits_per_symbol - 1U));
         } else {
             uint32_t state = (uint32_t) index + 1U;

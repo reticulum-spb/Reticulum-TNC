@@ -52,10 +52,10 @@ Example:
 
 ```text
 name                       interface bitrate bps
-bpsk_750_robust64          299
-bpsk_1200_robust64         478
-qpsk_1200_robust64         879
-qpsk_1600_robust64         1172
+bpsk_750_1_64              299
+bpsk_1200_1_64             478
+qpsk_1200_1_64             879
+qpsk_1600_1_64             1172
 ...
 turbo                      1016
 ```
@@ -81,9 +81,9 @@ two-handheld over-the-air packet test without loss:
 That test delivered five dense 500-byte packets as 40 independently protected
 radio frames (40/40 frames and 5/5 packets). It is a good-channel result, not a
 sensitivity guarantee. The default YAML profile remains
-`qpsk_1200_robust64`.
+`qpsk_1200_1_64`.
 
-The experimental `bpsk_750_robust64` and `bpsk_1200_robust64` profiles are
+The experimental `bpsk_750_1_64` and `bpsk_1200_1_64` profiles are
 robust/HF candidates. They use a dedicated balanced PRBS acquisition/training
 sequence and retain soft LLR through ROBUST FEC. Their calculated interface
 ceilings are 299 and 478 bit/s respectively. Both pass audio-band loopback and
@@ -140,7 +140,7 @@ and detector parameters live in that profile record.
 
 ```yaml
 modem:
-  profile: qpsk_1200_robust64
+  profile: qpsk_1200_1_64
 
 runtime:
   tx_queue_packets: 4
@@ -184,7 +184,7 @@ client. It supports KISS data on port zero plus `TXDELAY`, `P`, `SLOTTIME`, and
 Diagnostic packet receive mode:
 
 ```sh
-rtnc_modem rtnc.yaml qpsk_1200_robust64 packet 60 1
+rtnc_modem rtnc.yaml qpsk_1200_1_64 packet 60 1
 ```
 
 `SECONDS=0` disables the time limit. `EXPECTED_FRAMES=0` disables the packet or
@@ -209,6 +209,8 @@ therefore excluded from the default command above.
 ## Documentation
 
 - [Offline-site OTA benchmark](docs/ota-benchmark.md)
+- [`docs/modem-api.md`](docs/modem-api.md) — modem TX/RX API and simultaneous
+  two-profile reception
 
 - [`docs/config.md`](docs/config.md) — complete YAML reference
 - [`docs/kiss-runtime.md`](docs/kiss-runtime.md) — KISS and packet runtime

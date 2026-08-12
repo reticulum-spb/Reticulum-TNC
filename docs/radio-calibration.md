@@ -227,7 +227,7 @@ strong-signal 10/10 identity versus 9/10 FIR selection.
 ## Initial coherent two-radio measurement
 
 The first coherent test on 2026-08-12 used the selected
-`qpsk_1200_robust64` occupied band (900--2400 Hz). Both captures completed
+`qpsk_1200_1_64` occupied band (900--2400 Hz). Both captures completed
 with zero ALSA XRUNs and zero dropped blocks:
 
 | Direction | Amplitude ripple | Group-delay ripple | Residual phase RMS |
@@ -295,7 +295,7 @@ screening result was:
 
 | Result | Profiles |
 |---|---|
-| GOOD | `bpsk_750_robust64`, `bpsk_1200_robust64`, `qpsk_1200_robust64`, `qpsk_800_robust64`, `8psk_600_robust64`, `8psk_800_robust64` |
+| GOOD | `bpsk_750_1_64`, `bpsk_1200_1_64`, `qpsk_1200_1_64`, `qpsk_800_1_64`, `8psk_600_1_64`, `8psk_800_1_64` |
 | MARGINAL | QPSK 1500/1600 profiles centered near 1650--1800 Hz; all 8PSK 1000/1200/1600 profiles including `turbo` |
 | POOR | QPSK profiles whose occupied band extends far below 600 Hz or above 2800 Hz; both experimental 16PSK profiles |
 

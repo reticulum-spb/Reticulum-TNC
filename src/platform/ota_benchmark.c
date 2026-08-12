@@ -31,7 +31,7 @@ bool rtnc_ota_benchmark_encode(const rtnc_ota_benchmark_message_t *message, uint
     size_t required;
     if (message == NULL || packet == NULL || packet_length == NULL ||
         message->type < RTNC_OTA_BENCHMARK_ANNOUNCE ||
-        message->type > RTNC_OTA_BENCHMARK_END) {
+        message->type > RTNC_OTA_BENCHMARK_DATA) {
         return false;
     }
     profile_length = strnlen(message->profile, sizeof(message->profile));
@@ -72,7 +72,7 @@ bool rtnc_ota_benchmark_decode(const uint8_t *packet, size_t packet_length, rtnc
         memcmp(packet, benchmark_magic, sizeof(benchmark_magic)) != 0 ||
         packet[4] != RTNC_OTA_BENCHMARK_VERSION ||
         packet[5] < RTNC_OTA_BENCHMARK_ANNOUNCE ||
-        packet[5] > RTNC_OTA_BENCHMARK_END) {
+        packet[5] > RTNC_OTA_BENCHMARK_DATA) {
         return false;
     }
     profile_length = packet[6];

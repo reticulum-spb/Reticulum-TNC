@@ -23,6 +23,8 @@ typedef struct {
 
 typedef struct {
     char *profile;
+    /** Optional second RX profile; NULL disables its detector. */
+    char *control_profile;
 } rtnc_modem_config_t;
 
 typedef struct {

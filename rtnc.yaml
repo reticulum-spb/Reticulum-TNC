@@ -7,13 +7,15 @@ audio:
   periods: 4
 
 modem:
-  profile: qpsk_1200_robust64
+  profile: qpsk_1200_1_64
+  # Remove this key to disable the second RX detector.
+  control_profile: bpsk_750_1_64
 
 profiles:
   # fec_mode: 0=NONE (tests), 1=ROBUST TC128 rate 1/2,
   #           2=NORMAL punctured TC128 rate 2/3. FAST is not implemented.
   # Experimental robust/HF candidates within the fixed realtime buffers.
-  - name: bpsk_750_robust64
+  - name: bpsk_750_1_64
     modulation: bpsk
     symbol_rate_baud: 750
     carrier_hz: 1650.0
@@ -23,7 +25,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: bpsk_1200_robust64
+  - name: bpsk_1200_1_64
     modulation: bpsk
     symbol_rate_baud: 1200
     carrier_hz: 1650.0
@@ -33,7 +35,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: qpsk_1200_robust64
+  - name: qpsk_1200_1_64
     modulation: qpsk
     symbol_rate_baud: 1200
     carrier_hz: 1650.0
@@ -43,7 +45,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: qpsk_1600_robust64
+  - name: qpsk_1600_1_64
     modulation: qpsk
     symbol_rate_baud: 1600
     carrier_hz: 1650.0
@@ -53,7 +55,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: qpsk_1600_robust128
+  - name: qpsk_1600_1_128
     modulation: qpsk
     symbol_rate_baud: 1600
     carrier_hz: 1650.0
@@ -63,7 +65,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 128
-  - name: qpsk_1600_normal64
+  - name: qpsk_1600_2_64
     modulation: qpsk
     symbol_rate_baud: 1600
     carrier_hz: 1650.0
@@ -73,7 +75,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 2
     payload_class_bytes: 64
-  - name: qpsk_1600_normal128
+  - name: qpsk_1600_2_128
     modulation: qpsk
     symbol_rate_baud: 1600
     carrier_hz: 1650.0
@@ -83,7 +85,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 2
     payload_class_bytes: 128
-  - name: qpsk_1500_c1800_robust64
+  - name: qpsk1500_c1800_1_64
     modulation: qpsk
     symbol_rate_baud: 1500
     carrier_hz: 1800.0
@@ -93,7 +95,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: qpsk_1600_c1300_robust64
+  - name: qpsk1600_c1300_1_64
     modulation: qpsk
     symbol_rate_baud: 1600
     carrier_hz: 1300.0
@@ -103,7 +105,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: qpsk_1600_c1450_robust64
+  - name: qpsk1600_c1450_1_64
     modulation: qpsk
     symbol_rate_baud: 1600
     carrier_hz: 1450.0
@@ -113,7 +115,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: qpsk_1600_c1800_robust64
+  - name: qpsk1600_c1800_1_64
     modulation: qpsk
     symbol_rate_baud: 1600
     carrier_hz: 1800.0
@@ -123,17 +125,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: qpsk_1600_c1800_a015_robust64
-    modulation: qpsk
-    symbol_rate_baud: 1600
-    carrier_hz: 1800.0
-    rrc_rolloff: 0.15
-    acquisition_threshold: 0.90
-    training_threshold: 0.70
-    detector_bandwidth_margin: 1.35
-    fec_mode: 1
-    payload_class_bytes: 64
-  - name: qpsk_1920_robust64
+  - name: qpsk_1920_1_64
     modulation: qpsk
     symbol_rate_baud: 1920
     carrier_hz: 1650.0
@@ -143,7 +135,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: qpsk_2000_robust64
+  - name: qpsk_2000_1_64
     modulation: qpsk
     symbol_rate_baud: 2000
     carrier_hz: 1650.0
@@ -153,7 +145,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: qpsk_2400_robust64
+  - name: qpsk_2400_1_64
     modulation: qpsk
     symbol_rate_baud: 2400
     carrier_hz: 1650.0
@@ -164,7 +156,7 @@ profiles:
     fec_mode: 1
     payload_class_bytes: 64
 
-  - name: qpsk_800_robust64
+  - name: qpsk_800_1_64
     modulation: qpsk
     symbol_rate_baud: 800
     carrier_hz: 1650.0
@@ -174,7 +166,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: 8psk_600_robust64
+  - name: 8psk_600_1_64
     modulation: 8psk
     symbol_rate_baud: 600
     carrier_hz: 1650.0
@@ -184,7 +176,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: 8psk_800_robust64
+  - name: 8psk_800_1_64
     modulation: 8psk
     symbol_rate_baud: 800
     carrier_hz: 1650.0
@@ -205,7 +197,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: 8psk_1000_robust128
+  - name: 8psk_1000_1_128
     modulation: 8psk
     symbol_rate_baud: 1000
     carrier_hz: 1650.0
@@ -216,7 +208,7 @@ profiles:
     fec_mode: 1
     payload_class_bytes: 128
   # Experimental equal-raw-rate comparison with turbo (3000 bit/s).
-  - name: experimental_16psk_750
+  - name: 16psk750_exp
     modulation: 16psk
     symbol_rate_baud: 750
     carrier_hz: 1650.0
@@ -227,7 +219,7 @@ profiles:
     fec_mode: 1
     payload_class_bytes: 64
   # Experimental maximum-rate candidate (4000 bit/s raw).
-  - name: experimental_16psk_1000
+  - name: 16psk1000_exp
     modulation: 16psk
     symbol_rate_baud: 1000
     carrier_hz: 1650.0
@@ -237,7 +229,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: 8psk_1000_normal64
+  - name: 8psk_1000_2_64
     modulation: 8psk
     symbol_rate_baud: 1000
     carrier_hz: 1650.0
@@ -247,7 +239,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 2
     payload_class_bytes: 64
-  - name: 8psk_1000_normal128
+  - name: 8psk_1000_2_128
     modulation: 8psk
     symbol_rate_baud: 1000
     carrier_hz: 1650.0
@@ -257,7 +249,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 2
     payload_class_bytes: 128
-  - name: 8psk_1200_robust64
+  - name: 8psk_1200_1_64
     modulation: 8psk
     symbol_rate_baud: 1200
     carrier_hz: 1650.0
@@ -267,7 +259,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: 8psk_1600_robust64
+  - name: 8psk_1600_1_64
     modulation: 8psk
     symbol_rate_baud: 1600
     carrier_hz: 1650.0
@@ -277,7 +269,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 64
-  - name: 8psk_1600_robust128
+  - name: 8psk_1600_1_128
     modulation: 8psk
     symbol_rate_baud: 1600
     carrier_hz: 1650.0
@@ -287,7 +279,7 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 128
-  - name: 8psk_1600_normal128
+  - name: 8psk_1600_2_128
     modulation: 8psk
     symbol_rate_baud: 1600
     carrier_hz: 1650.0

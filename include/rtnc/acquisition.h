@@ -21,6 +21,7 @@ typedef struct {
     size_t         stride_samples;
     float          threshold;
     float          best_score;
+    rtnc_modem_t  *modem;
 } rtnc_acquisition_detector_t;
 
 bool rtnc_acquisition_detector_init(
@@ -34,5 +35,11 @@ void rtnc_acquisition_detector_deinit(rtnc_acquisition_detector_t *detector);
 
 /** Consume one real audio sample and report a normalized preamble hit. */
 bool rtnc_acquisition_detector_process(rtnc_acquisition_detector_t *detector, float audio_sample, float *score);
+
+/** Initialize a detector directly from an initialized modem and retain its pointer. */
+bool rtnc_acquisition_detector_init_modem(rtnc_acquisition_detector_t *detector, rtnc_modem_t *modem, size_t stride_samples);
+
+/** Process one or two independent detectors; second may be NULL. */
+bool rtnc_acquisition_detector_process_two(rtnc_acquisition_detector_t *first, rtnc_acquisition_detector_t *second, float audio_sample, rtnc_modem_t **detected_modem, float *first_score, float *second_score);
 
 #endif
