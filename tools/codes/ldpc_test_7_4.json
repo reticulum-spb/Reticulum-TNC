@@ -1,0 +1,9 @@
+{
+  "name": "ldpc_test_7_4",
+  "information_bits": 4,
+  "parity_check_rows": [
+    [0, 1, 3, 4],
+    [0, 2, 3, 5],
+    [1, 2, 3, 6]
+  ]
+}
