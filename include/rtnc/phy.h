@@ -10,6 +10,8 @@ enum { RTNC_EQUALIZER_DIAGNOSTIC_TAPS = 17U };
 typedef enum {
     RTNC_MODULATION_QPSK = 0,
     RTNC_MODULATION_8PSK = 1,
+    RTNC_MODULATION_16PSK = 2,
+    RTNC_MODULATION_BPSK = 3,
 } rtnc_modulation_t;
 
 /** Fixed physical-layer parameters selected before transmission. */
@@ -52,7 +54,7 @@ rtnc_phy_profile_t rtnc_phy_profile_qpsk_1200(void);
 /** Build a fixed 48-kHz QPSK profile with an integer samples/symbol ratio. */
 bool rtnc_phy_profile_qpsk(uint32_t symbol_rate_baud, float carrier_hz, rtnc_phy_profile_t *profile);
 
-/** Build a fixed 48-kHz QPSK or 8PSK profile. */
+/** Build a fixed 48-kHz QPSK, 8PSK, or 16PSK profile. */
 bool rtnc_phy_profile_psk(rtnc_modulation_t modulation, uint32_t symbol_rate_baud, float carrier_hz, rtnc_phy_profile_t *profile);
 
 /** Check profile invariants supported by the Phase 1 implementation. */

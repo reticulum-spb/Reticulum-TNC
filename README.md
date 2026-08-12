@@ -9,7 +9,7 @@ I/O. It uses its own radio framing rather than AX.25 or HDLC.
 
 ## Implemented features
 
-- QPSK and 8PSK at 48 kHz audio sample rate
+- BPSK, QPSK, and 8PSK, plus experimental 16PSK, at 48 kHz audio sample rate
 - Named, fixed PHY profiles loaded from YAML
 - Root-raised-cosine pulse shaping and matched filtering
 - Preamble correlation, symbol timing, carrier/phase recovery, and frame
@@ -52,6 +52,8 @@ Example:
 
 ```text
 name                       interface bitrate bps
+bpsk_750_robust64          299
+bpsk_1200_robust64         478
 qpsk_1200_robust64         879
 qpsk_1600_robust64         1172
 ...
@@ -80,6 +82,14 @@ That test delivered five dense 500-byte packets as 40 independently protected
 radio frames (40/40 frames and 5/5 packets). It is a good-channel result, not a
 sensitivity guarantee. The default YAML profile remains
 `qpsk_1200_robust64`.
+
+The experimental `bpsk_750_robust64` and `bpsk_1200_robust64` profiles are
+robust/HF candidates. They use a dedicated balanced PRBS acquisition/training
+sequence and retain soft LLR through ROBUST FEC. Their calculated interface
+ceilings are 299 and 478 bit/s respectively. Both pass audio-band loopback and
+phase/CFO/timing tests, but neither has yet been validated through a measured
+HF fading/Doppler channel or over the air. BPSK-600 is not provided because a
+ROBUST/64 frame exceeds the fixed realtime audio buffer.
 
 ## Radio packet path
 
@@ -197,6 +207,8 @@ The recorded-channel test requires its external recording to be present and is
 therefore excluded from the default command above.
 
 ## Documentation
+
+- [Offline-site OTA benchmark](docs/ota-benchmark.md)
 
 - [`docs/config.md`](docs/config.md) — complete YAML reference
 - [`docs/kiss-runtime.md`](docs/kiss-runtime.md) — KISS and packet runtime

@@ -73,18 +73,22 @@ int main(void) {
         uint32_t          rate;
         const char       *name;
     } profiles[] = {
-        {RTNC_MODULATION_QPSK,  800U,  "qpsk"},
-        { RTNC_MODULATION_QPSK, 1200U, "qpsk"},
-        { RTNC_MODULATION_QPSK, 1500U, "qpsk"},
-        { RTNC_MODULATION_QPSK, 1600U, "qpsk"},
-        { RTNC_MODULATION_QPSK, 1920U, "qpsk"},
-        { RTNC_MODULATION_QPSK, 2000U, "qpsk"},
-        { RTNC_MODULATION_QPSK, 2400U, "qpsk"},
-        { RTNC_MODULATION_8PSK, 600U,  "8psk"},
-        { RTNC_MODULATION_8PSK, 800U,  "8psk"},
-        { RTNC_MODULATION_8PSK, 1000U, "8psk"},
-        { RTNC_MODULATION_8PSK, 1200U, "8psk"},
-        { RTNC_MODULATION_8PSK, 1600U, "8psk"},
+        {RTNC_MODULATION_BPSK,   750U,  "bpsk" },
+        { RTNC_MODULATION_BPSK,  1200U, "bpsk" },
+        { RTNC_MODULATION_QPSK,  800U,  "qpsk" },
+        { RTNC_MODULATION_QPSK,  1200U, "qpsk" },
+        { RTNC_MODULATION_QPSK,  1500U, "qpsk" },
+        { RTNC_MODULATION_QPSK,  1600U, "qpsk" },
+        { RTNC_MODULATION_QPSK,  1920U, "qpsk" },
+        { RTNC_MODULATION_QPSK,  2000U, "qpsk" },
+        { RTNC_MODULATION_QPSK,  2400U, "qpsk" },
+        { RTNC_MODULATION_8PSK,  600U,  "8psk" },
+        { RTNC_MODULATION_8PSK,  800U,  "8psk" },
+        { RTNC_MODULATION_8PSK,  1000U, "8psk" },
+        { RTNC_MODULATION_8PSK,  1200U, "8psk" },
+        { RTNC_MODULATION_8PSK,  1600U, "8psk" },
+        { RTNC_MODULATION_16PSK, 750U,  "16psk"},
+        { RTNC_MODULATION_16PSK, 1000U, "16psk"},
     };
     static const float points[] = { 8.0F, 12.0F, 16.0F, 20.0F };
     size_t             rate_index;

@@ -16,6 +16,6 @@ typedef struct {
 bool rtnc_psk_init(rtnc_psk_t *psk, rtnc_modulation_t modulation);
 void rtnc_psk_deinit(rtnc_psk_t *psk);
 bool rtnc_psk_map(rtnc_psk_t *psk, uint8_t symbol, float complex *sample);
-bool rtnc_psk_demap_soft(rtnc_psk_t *psk, float complex sample, uint8_t *symbol, float llr[3], float *evm);
+bool rtnc_psk_demap_soft(rtnc_psk_t *psk, float complex sample, uint8_t *symbol, float llr[4], float *evm);
 
 #endif

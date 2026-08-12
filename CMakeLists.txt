@@ -30,6 +30,7 @@ add_library(rtnc_core STATIC
     src/platform/completion.c
     src/platform/decode_queue.c
     src/platform/kiss.c
+    src/platform/ota_benchmark.c
     src/platform/packet_queue.c
     src/platform/runtime.c
     src/platform/tx_eq.c
@@ -49,6 +50,7 @@ if(LiquidDSP_FOUND)
         src/phy/equalizer.c
         src/modem/offline.c
         src/phy/psk.c
+        src/phy/radio_response.c
         src/phy/rrc.c
         src/phy/timing.c
     )
@@ -203,6 +205,8 @@ if(CYAML_INCLUDE_DIR AND CYAML_LIBRARY AND GPIOD_INCLUDE_DIR AND GPIOD_LIBRARY
         target_link_libraries(rtnc_alsa_rx PRIVATE rtnc_platform m)
         add_executable(rtnc_modem tools/alsa_rx.c)
         target_link_libraries(rtnc_modem PRIVATE rtnc_platform m)
+        add_executable(rtnc_ota_benchmark tools/ota_benchmark.c)
+        target_link_libraries(rtnc_ota_benchmark PRIVATE rtnc_platform m)
     endif()
     if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
         target_compile_options(rtnc_check_config PRIVATE
@@ -227,6 +231,10 @@ if(CYAML_INCLUDE_DIR AND CYAML_LIBRARY AND GPIOD_INCLUDE_DIR AND GPIOD_LIBRARY
         endif()
         if(TARGET rtnc_modem)
             target_compile_options(rtnc_modem PRIVATE
+                -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Werror)
+        endif()
+        if(TARGET rtnc_ota_benchmark)
+            target_compile_options(rtnc_ota_benchmark PRIVATE
                 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Werror)
         endif()
     endif()
@@ -259,6 +267,14 @@ if(BUILD_TESTING)
     target_link_libraries(test_tx_eq PRIVATE rtnc::core m)
     add_test(NAME tx_inverse_response_fir COMMAND test_tx_eq)
 
+    add_executable(test_radio_response tests/unit/test_radio_response.c)
+    target_link_libraries(test_radio_response PRIVATE rtnc::core m)
+    add_test(NAME radio_complex_response COMMAND test_radio_response)
+
+    add_executable(test_psk_soft tests/unit/test_psk_soft.c)
+    target_link_libraries(test_psk_soft PRIVATE rtnc::core m)
+    add_test(NAME psk_soft_mapping COMMAND test_psk_soft)
+
     add_executable(test_wav tests/unit/test_wav.c)
     target_link_libraries(test_wav PRIVATE rtnc::core)
     add_test(NAME wav_round_trip COMMAND test_wav)
@@ -274,6 +290,10 @@ if(BUILD_TESTING)
     add_executable(test_kiss tests/unit/test_kiss.c)
     target_link_libraries(test_kiss PRIVATE rtnc::core)
     add_test(NAME kiss_stream_framing COMMAND test_kiss)
+
+    add_executable(test_ota_benchmark tests/unit/test_ota_benchmark.c)
+    target_link_libraries(test_ota_benchmark PRIVATE rtnc::core)
+    add_test(NAME ota_benchmark_protocol COMMAND test_ota_benchmark)
 
     add_executable(test_decode_queue tests/unit/test_decode_queue.c)
     target_link_libraries(test_decode_queue PRIVATE rtnc::core)
@@ -385,6 +405,10 @@ if(BUILD_TESTING)
         target_link_libraries(test_channel_impairments PRIVATE rtnc::core m)
         add_test(NAME channel_awgn_phase_cfo COMMAND test_channel_impairments)
 
+        add_executable(test_bpsk_channel tests/channel/test_bpsk_channel.c)
+        target_link_libraries(test_bpsk_channel PRIVATE rtnc::core m)
+        add_test(NAME bpsk_phase_cfo_timing COMMAND test_bpsk_channel)
+
         add_executable(test_modem_ebn0 tests/channel/test_modem_ebn0.c)
         target_link_libraries(test_modem_ebn0 PRIVATE rtnc::core m)
         add_test(NAME modem_calibrated_ebn0 COMMAND test_modem_ebn0)
@@ -434,6 +458,12 @@ if(BUILD_TESTING)
         target_link_libraries(test_equalizer_state PRIVATE rtnc::core m)
         add_test(NAME equalizer_state_restoration COMMAND test_equalizer_state)
 
+        add_executable(test_measured_radio_response
+            tests/channel/test_measured_radio_response.c)
+        target_link_libraries(test_measured_radio_response PRIVATE rtnc::core m)
+        add_test(NAME measured_radio_complex_replay
+            COMMAND test_measured_radio_response)
+
         add_test(NAME recorded_hackrf_handheld_replay
             COMMAND rtnc_decode_wav
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests/recordings/hackrf_radio_dev2100_frame.wav)
@@ -451,8 +481,8 @@ if(BUILD_TESTING)
                 test_audio_loopback test_modem_loopback test_psk_profiles
                 test_payload_classes
                 test_payload_class_ebn0 test_timing_noise test_equalizer
-                test_audio_distortion test_equalizer_audio_echo
-                test_equalizer_state)
+                test_audio_distortion test_equalizer_audio_echo test_bpsk_channel
+                test_equalizer_state test_measured_radio_response)
         if(TARGET test_sample_rate_mismatch)
             target_compile_options(test_sample_rate_mismatch PRIVATE
                 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Werror)

@@ -8,12 +8,18 @@ bool rtnc_psk_init(rtnc_psk_t *psk, rtnc_modulation_t modulation) {
     if (psk == NULL) {
         return false;
     }
-    if (modulation == RTNC_MODULATION_QPSK) {
+    if (modulation == RTNC_MODULATION_BPSK) {
+        scheme = LIQUID_MODEM_BPSK;
+        psk->bits_per_symbol = 1U;
+    } else if (modulation == RTNC_MODULATION_QPSK) {
         scheme = LIQUID_MODEM_QPSK;
         psk->bits_per_symbol = 2U;
     } else if (modulation == RTNC_MODULATION_8PSK) {
         scheme = LIQUID_MODEM_PSK8;
         psk->bits_per_symbol = 3U;
+    } else if (modulation == RTNC_MODULATION_16PSK) {
+        scheme = LIQUID_MODEM_PSK16;
+        psk->bits_per_symbol = 4U;
     } else {
         return false;
     }
@@ -52,9 +58,9 @@ bool rtnc_psk_map(rtnc_psk_t *psk, uint8_t symbol, float complex *sample) {
            modemcf_modulate((modemcf) psk->modulator, symbol, sample) == LIQUID_OK;
 }
 
-bool rtnc_psk_demap_soft(rtnc_psk_t *psk, float complex sample, uint8_t *symbol, float llr[3], float *evm) {
+bool rtnc_psk_demap_soft(rtnc_psk_t *psk, float complex sample, uint8_t *symbol, float llr[4], float *evm) {
     unsigned int  hard_symbol = 0U;
-    unsigned char soft_bits[3] = { 0U, 0U, 0U };
+    unsigned char soft_bits[4] = { 0U, 0U, 0U, 0U };
     unsigned int  bit;
     if (psk == NULL || psk->demodulator == NULL || symbol == NULL ||
         llr == NULL || evm == NULL) {

@@ -47,7 +47,8 @@ bool rtnc_modem_profile_rate(const rtnc_phy_profile_t *profile, fec_mode_t fec_m
     interface_bits_per_second =
         ((uint64_t) payload_class_bytes - RTNC_FRAGMENT_HEADER_SIZE) * 8U *
         profile->sample_rate_hz / frame_samples;
-    if (frame_samples > SIZE_MAX || raw_bitrate > UINT32_MAX ||
+    if (frame_samples > RTNC_MODEM_MAX_AUDIO_SAMPLES ||
+        frame_samples > SIZE_MAX || raw_bitrate > UINT32_MAX ||
         fec_bitrate > UINT32_MAX ||
         interface_bits_per_second > UINT32_MAX) {
         return false;

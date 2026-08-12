@@ -45,6 +45,9 @@ int main(void) {
     assert(!rtnc_phy_profile_qpsk(3000U, 1650.0F, &profile));
     assert(rtnc_phy_profile_psk(RTNC_MODULATION_QPSK, 800U, 1650.0F, &profile));
     assert(profile.samples_per_symbol == 60U);
+    assert(rtnc_phy_profile_psk(RTNC_MODULATION_BPSK, 750U, 1650.0F, &profile));
+    assert(profile.bits_per_symbol == 1U);
+    assert(profile.samples_per_symbol == 64U);
     assert(rtnc_phy_profile_psk(RTNC_MODULATION_8PSK, 600U, 1650.0F, &profile));
     assert(profile.bits_per_symbol == 3U);
     assert(profile.samples_per_symbol == 80U);
@@ -58,6 +61,10 @@ int main(void) {
     assert(profile_rate.frame_samples == 23808U);
     assert(!rtnc_modem_profile_rate(&profile, FEC_LDPC_FAST, 64U, &profile_rate));
     assert(!rtnc_modem_profile_rate(&profile, FEC_LDPC_ROBUST, 65U, &profile_rate));
+    assert(rtnc_phy_profile_psk(RTNC_MODULATION_16PSK, 1000U, 1650.0F, &profile));
+    assert(profile.bits_per_symbol == 4U);
+    assert(rtnc_modem_profile_rate(&profile, FEC_LDPC_ROBUST, 64U, &profile_rate));
+    assert(profile_rate.raw_bitrate_bps == 4000U);
 
     return 0;
 }

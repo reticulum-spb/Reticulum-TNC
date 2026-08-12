@@ -1,0 +1,5 @@
+/build/
+/buildroot/
+/recordings/
+/AGENTS.md
+*.csv

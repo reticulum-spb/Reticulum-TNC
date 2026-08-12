@@ -2,6 +2,7 @@
 #include "rtnc/audio_ring.h"
 #include "rtnc/decode_queue.h"
 #include "rtnc/fragmentation.h"
+#include "rtnc/modem.h"
 #include "rtnc/packet_queue.h"
 
 #include <cyaml/cyaml.h>
@@ -106,7 +107,7 @@ static const cyaml_schema_field_t platform_fields[] = {
     CYAML_FIELD_MAPPING("workers", CYAML_FLAG_DEFAULT, rtnc_platform_config_t, workers, worker_fields),
     CYAML_FIELD_MAPPING("detector", CYAML_FLAG_DEFAULT, rtnc_platform_config_t, detector, detector_fields),
     CYAML_FIELD_MAPPING("runtime", CYAML_FLAG_DEFAULT, rtnc_platform_config_t, runtime, runtime_fields),
-    CYAML_FIELD_SEQUENCE("profiles", CYAML_FLAG_POINTER, rtnc_platform_config_t, profiles, &phy_profile_schema, 1U, 24U),
+    CYAML_FIELD_SEQUENCE("profiles", CYAML_FLAG_POINTER, rtnc_platform_config_t, profiles, &phy_profile_schema, 1U, 32U),
     CYAML_FIELD_END,
 };
 
@@ -139,10 +140,17 @@ static bool platform_config_is_valid(const rtnc_platform_config_t *config) {
     for (index = 0U; index < config->profiles_count; ++index) {
         unsigned int       other;
         rtnc_phy_profile_t candidate;
+        rtnc_modem_rate_t  rate;
         if (!rtnc_platform_phy_profile_named(
                 config,
                 config->profiles[index].name,
                 &candidate
+            ) ||
+            !rtnc_modem_profile_rate(
+                &candidate,
+                (fec_mode_t) config->profiles[index].fec_mode,
+                config->profiles[index].payload_class_bytes,
+                &rate
             )) {
             return false;
         }
@@ -251,10 +259,14 @@ bool rtnc_platform_phy_profile_named(const rtnc_platform_config_t *config, const
         if (entry->modulation == NULL) {
             return false;
         }
-        if (strcmp(entry->modulation, "qpsk") == 0) {
+        if (strcmp(entry->modulation, "bpsk") == 0) {
+            modulation = RTNC_MODULATION_BPSK;
+        } else if (strcmp(entry->modulation, "qpsk") == 0) {
             modulation = RTNC_MODULATION_QPSK;
         } else if (strcmp(entry->modulation, "8psk") == 0) {
             modulation = RTNC_MODULATION_8PSK;
+        } else if (strcmp(entry->modulation, "16psk") == 0) {
+            modulation = RTNC_MODULATION_16PSK;
         } else {
             return false;
         }

@@ -10,13 +10,18 @@ rtnc_radio_calibrate rtnc.yaml tx
 
 # Receiving set
 rtnc_radio_calibrate rtnc.yaml rx
+
+# Receiving set with a machine-readable report
+rtnc_radio_calibrate rtnc.yaml rx radio-calibration.csv
 ```
 
-The order does not matter. TX repeats a self-identifying approximately
-12.3-second cycle until Ctrl-C. RX listens for at most 28 seconds, detects the
-1-kHz marker, captures the remainder of that cycle, and exits as soon as the
-complete sweep is available. TX deliberately bypasses the configured response
-correction while retaining the configured PTT lead/tail timing.
+The order does not matter. TX repeats batches of three self-identifying
+approximately 13.8-second cycles until Ctrl-C. RX listens for at most 60
+seconds, detects the first 1-kHz marker, captures the complete three-cycle
+batch, and exits. All three cycles in one batch use a single PTT interval so
+that keying latency cannot masquerade as response instability. TX deliberately
+bypasses the configured response correction while retaining the configured
+PTT lead/tail timing.
 
 Each cycle tests 600--2700 Hz at PCM peaks 4000, 8000, 12000, and 16000. RX
 rejects a higher level if any test frequency has lost more than 15 percent of
@@ -35,6 +40,78 @@ tx:
 
 Copy these two values to the transmitting set and repeat once to validate the
 corrected path. Swap `tx` and `rx` to calibrate the opposite direction.
+
+## Complex response and group delay
+
+The final 1.2 seconds of every two-radio cycle contain an eight-component
+phase-coherent multitone. The components use fixed initial phases and are
+transmitted simultaneously, so receiver gain changes affect magnitude but do
+not destroy their relative phase. RX removes the best constant and linear
+phase fit over the occupied band and reports:
+
+- `amplitude_ripple_db`: maximum-to-minimum coherent-tone response;
+- `relative_delay_ms`: slope of the fitted linear phase;
+- `group_delay_ripple_ms`: peak-to-peak departure of adjacent-tone group
+  delay;
+- `residual_phase_rms_deg`: RMS phase left after removing constant phase and
+  linear delay;
+- one complex magnitude and unwrapped phase row for every sounding tone.
+
+Example summary:
+
+```text
+occupied_band_hz=900.0..2400.0 amplitude_ripple_db=2.100 \
+relative_delay_ms=0.720 group_delay_ripple_ms=0.180 \
+residual_phase_rms_deg=4.30 points=6
+phase_recommendation=linear-phase response; keep identity TX phase response
+```
+
+`relative_delay_ms` includes the arbitrary ALSA/radio capture offset and is
+ambiguous by the reciprocal of the 300-Hz tone spacing (3.333 ms). It must not
+be treated as an end-to-end latency measurement. Constant phase and linear
+delay do not distort PSK; `group_delay_ripple_ms` and
+`residual_phase_rms_deg` are the relevant channel-quality results.
+
+The current recommendation calls a response approximately linear-phase when
+the measured ripple is at most 15 percent of one symbol period. A larger value
+does not automatically enable a phase-inverse TX filter. First save the result
+for a deterministic channel replay and compare the existing fractionally
+spaced RX equalizer. An inverse phase filter can amplify response nulls and is
+specific to one TX-radio/RX-radio direction.
+
+Repeat the measurement after swapping `tx` and `rx`. Two ordinary radios
+measure the useful directional combinations TX-A/RX-B and TX-B/RX-A; they
+cannot identify the individual radio responses separately.
+
+RX prints a mean and population standard deviation over the three cycles. A
+phase standard deviation at most 1 degree and group-delay-ripple standard
+deviation at most 0.05 ms are classified as stable. It also prints
+conservative screening grades for QPSK, 8PSK, and 16PSK:
+
+| Modulation | `GOOD` phase/group-delay limits |
+|---|---:|
+| QPSK | 15 degrees / 0.50 ms |
+| 8PSK | 8 degrees / 0.35 ms |
+| 16PSK | 3 degrees / 0.15 ms |
+
+Up to twice both limits is `MARGINAL`; anything worse is `POOR`. These grades
+are deliberately only a screening tool. Dense packet goodput remains the
+acceptance criterion because the sounding cycle does not measure receiver
+noise sensitivity or time variation outside the batch.
+
+When a report filename is supplied in RX mode, the utility writes one CSV row
+per cycle plus a mean row. The file contains amplitude ripple, relative delay,
+group-delay ripple, and residual phase and can be archived as a directional
+radio-pair record or used to construct a deterministic replay fixture.
+
+The same coherent tone coefficients are also reanalyzed for every entry in
+the YAML `profiles` list. Each `profile_suitability` row uses that profile's
+carrier, RRC occupied bandwidth, modulation, and symbol period. The `GOOD`
+group-delay limits scale with symbol period: 0.50 symbol for BPSK, 0.60 for
+QPSK, 0.35 for 8PSK, and 0.15 for 16PSK. Corresponding residual-phase limits
+are 30, 15, 8, and 3 degrees. The extended CSV contains the same per-profile
+rows, so one radio measurement can screen every configured fixed profile
+without retransmitting a different modem waveform.
 
 ## HackRF receive backend
 
@@ -146,3 +223,83 @@ identity repeat delivered 4/5 at 11.76 dB. Thus the apparent FIR improvement
 coincided with a roughly 4.6-dB channel change; at matched SNR, FIR and identity
 were indistinguishable in this short sample. This does not reverse the
 strong-signal 10/10 identity versus 9/10 FIR selection.
+
+## Initial coherent two-radio measurement
+
+The first coherent test on 2026-08-12 used the selected
+`qpsk_1200_robust64` occupied band (900--2400 Hz). Both captures completed
+with zero ALSA XRUNs and zero dropped blocks:
+
+| Direction | Amplitude ripple | Group-delay ripple | Residual phase RMS |
+|---|---:|---:|---:|
+| `.54` TX to `.197` RX, run 1 | 7.293 dB | 0.316 ms | 7.51 degrees |
+| `.54` TX to `.197` RX, run 2 | 7.360 dB | 0.318 ms | 7.54 degrees |
+| `.197` TX to `.54` RX | 6.802 dB | 0.306 ms | 7.46 degrees |
+
+The two repeated forward measurements agree closely even though their fitted
+relative delays changed from 0.541 to 1.144 ms due to capture alignment. This
+is the expected behavior: relative delay is ambiguous, while nonlinear phase
+and group-delay ripple are stable. A complete digital multitone/DFT regression
+with an arbitrary sample delay reports effectively zero ripple on an ideal
+channel, excluding the sounding waveform itself as the source of the measured
+approximately 0.31-ms result.
+
+The result is significant relative to a 1200-baud symbol but does not justify
+an automatic inverse-phase TX filter. Existing QPSK and 8PSK packet results
+show that the RX synchronization/equalizer can tolerate this channel. The
+approximately 7.5-degree residual phase is, however, a plausible contributor
+to the failed 16PSK experiment because adjacent 16PSK points are only 22.5
+degrees apart. The next engineering step is deterministic replay using a
+captured complex response, followed by an RX-equalizer comparison.
+
+That deterministic comparison now uses a committed real causal FIR fixture
+interpolated from the first `.54` TX to `.197` RX complex measurement. It
+preserves the measured nonlinear phase after removing only arbitrary constant
+phase and linear capture delay. Twenty different 64-byte 16PSK-1000 ROBUST
+frames produced:
+
+| Decoder path | CRC-valid frames | Average EVM |
+|---|---:|---:|
+| Ordinary one-sample/symbol fast path | 0/20 | 0.280 |
+| Fractionally-spaced equalizer fallback | 20/20 | 0.064 |
+
+All 20 successful frames explicitly used the equalizer. For a phase-only
+error, EVM 0.064 is approximately 3.7 degrees RMS, close to the practical
+16PSK boundary. This shows that the existing RX equalizer can compensate the
+deterministic response measured by the calibrator. It does not guarantee OTA
+16PSK reliability: the replay contains neither radio noise nor time-varying
+phase, and the measured OTA run still lost about half its physical frames.
+The next 16PSK improvement should therefore target post-equalizer margin and
+time variation rather than adding a fixed TX phase-inverse filter.
+
+The first complete three-cycle procedure then measured `.54` TX to `.197` RX
+as follows:
+
+```text
+summary cycles=3 amplitude_ripple_db=7.518 stddev=0.111 \
+group_delay_ripple_ms=0.316 stddev=0.001 \
+residual_phase_rms_deg=7.50 stddev=0.03
+suitability qpsk=GOOD 8psk=GOOD 16psk=POOR stability=GOOD
+```
+
+The capture had zero XRUNs and zero dropped blocks. The archived report is
+`recordings/radio-calibration/2026-08-12_54-to-197.csv`. This confirms that the
+approximately 0.31-ms/7.5-degree response is stable within one keyed batch,
+not short-term measurement noise.
+
+After adding per-profile evaluation, the same direction was measured again
+with a denser 200-Hz coherent grid. All three cycles completed without XRUNs
+or dropped blocks. The aggregate stability was GOOD: group-delay ripple was
+0.409 +/- 0.003 ms and residual phase was 8.75 +/- 0.09 degrees. The profile
+screening result was:
+
+| Result | Profiles |
+|---|---|
+| GOOD | `bpsk_750_robust64`, `bpsk_1200_robust64`, `qpsk_1200_robust64`, `qpsk_800_robust64`, `8psk_600_robust64`, `8psk_800_robust64` |
+| MARGINAL | QPSK 1500/1600 profiles centered near 1650--1800 Hz; all 8PSK 1000/1200/1600 profiles including `turbo` |
+| POOR | QPSK profiles whose occupied band extends far below 600 Hz or above 2800 Hz; both experimental 16PSK profiles |
+
+The full per-profile values are archived in
+`recordings/radio-calibration/2026-08-12_all-profiles_54-to-197.csv`. These
+grades characterize the measured linear channel response and its short-term
+stability; they are a screening result, not an OTA packet success test.

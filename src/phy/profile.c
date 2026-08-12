@@ -29,10 +29,14 @@ bool rtnc_phy_profile_psk(rtnc_modulation_t modulation, uint32_t symbol_rate_bau
     }
     candidate = rtnc_phy_profile_qpsk_1200();
     candidate.modulation = modulation;
-    if (modulation == RTNC_MODULATION_QPSK) {
+    if (modulation == RTNC_MODULATION_BPSK) {
+        candidate.bits_per_symbol = 1U;
+    } else if (modulation == RTNC_MODULATION_QPSK) {
         candidate.bits_per_symbol = 2U;
     } else if (modulation == RTNC_MODULATION_8PSK) {
         candidate.bits_per_symbol = 3U;
+    } else if (modulation == RTNC_MODULATION_16PSK) {
+        candidate.bits_per_symbol = 4U;
     } else {
         return false;
     }
@@ -63,12 +67,18 @@ bool rtnc_phy_profile_is_valid(const rtnc_phy_profile_t *profile) {
         profile->samples_per_symbol > 80U) {
         return false;
     }
-    if ((profile->modulation == RTNC_MODULATION_QPSK &&
+    if ((profile->modulation == RTNC_MODULATION_BPSK &&
+         profile->bits_per_symbol != 1U) ||
+        (profile->modulation == RTNC_MODULATION_QPSK &&
          profile->bits_per_symbol != 2U) ||
         (profile->modulation == RTNC_MODULATION_8PSK &&
          profile->bits_per_symbol != 3U) ||
-        (profile->modulation != RTNC_MODULATION_QPSK &&
-         profile->modulation != RTNC_MODULATION_8PSK)) {
+        (profile->modulation == RTNC_MODULATION_16PSK &&
+         profile->bits_per_symbol != 4U) ||
+        (profile->modulation != RTNC_MODULATION_BPSK &&
+         profile->modulation != RTNC_MODULATION_QPSK &&
+         profile->modulation != RTNC_MODULATION_8PSK &&
+         profile->modulation != RTNC_MODULATION_16PSK)) {
         return false;
     }
     if (profile->rrc_rolloff <= 0.0F || profile->rrc_rolloff > 1.0F) {

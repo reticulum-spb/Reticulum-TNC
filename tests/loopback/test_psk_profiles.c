@@ -34,12 +34,16 @@ static void voice_band(const float *input, size_t count, float *output) {
 
 int main(void) {
     static const case_t cases[] = {
-        {RTNC_MODULATION_QPSK,  800U,  "qpsk_800" },
-        { RTNC_MODULATION_8PSK, 600U,  "8psk_600" },
-        { RTNC_MODULATION_8PSK, 800U,  "8psk_800" },
-        { RTNC_MODULATION_8PSK, 1000U, "8psk_1000"},
-        { RTNC_MODULATION_8PSK, 1200U, "8psk_1200"},
-        { RTNC_MODULATION_8PSK, 1600U, "8psk_1600"},
+        {RTNC_MODULATION_BPSK,   750U,  "bpsk_750"  },
+        { RTNC_MODULATION_BPSK,  1200U, "bpsk_1200" },
+        { RTNC_MODULATION_QPSK,  800U,  "qpsk_800"  },
+        { RTNC_MODULATION_8PSK,  600U,  "8psk_600"  },
+        { RTNC_MODULATION_8PSK,  800U,  "8psk_800"  },
+        { RTNC_MODULATION_8PSK,  1000U, "8psk_1000" },
+        { RTNC_MODULATION_8PSK,  1200U, "8psk_1200" },
+        { RTNC_MODULATION_8PSK,  1600U, "8psk_1600" },
+        { RTNC_MODULATION_16PSK, 750U,  "16psk_750" },
+        { RTNC_MODULATION_16PSK, 1000U, "16psk_1000"},
     };
     static float                  audio[RTNC_MODEM_MAX_AUDIO_SAMPLES];
     static float                  filtered[RTNC_MODEM_MAX_AUDIO_SAMPLES];
@@ -70,7 +74,13 @@ int main(void) {
         );
         assert(rtnc_modem_tx_audio(&modem, input, sizeof(input), audio, sizeof(audio) / sizeof(audio[0]), &sample_count) == RTNC_MODEM_OK);
         assert(sample_count == rtnc_modem_frame_samples(&modem));
-        assert(rtnc_modem_rx_audio(&modem, audio, sample_count, output, sizeof(output), &output_length, &metrics, &workspace) == RTNC_MODEM_OK);
+        {
+            const rtnc_modem_status_t status = rtnc_modem_rx_audio(&modem, audio, sample_count, output, sizeof(output), &output_length, &metrics, &workspace);
+            if (status != RTNC_MODEM_OK) {
+                (void) fprintf(stderr, "%s status=%d acquisition=%.6f training=%.6f evm=%.6f equalizer=%d llr=%zu converged=%d iterations=%u\n", cases[case_index].name, (int) status, (double) metrics.acquisition_correlation, (double) metrics.training_correlation, (double) metrics.evm_rms, metrics.equalizer_used ? 1 : 0, workspace.llr_count, workspace.fec_stats.converged ? 1 : 0, workspace.fec_stats.iterations);
+            }
+            assert(status == RTNC_MODEM_OK);
+        }
         assert(output_length == sizeof(input));
         assert(memcmp(input, output, sizeof(input)) == 0);
         assert(workspace.llr_count == encoded_bytes * 8U);

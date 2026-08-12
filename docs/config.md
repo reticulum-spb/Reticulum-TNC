@@ -66,7 +66,7 @@ rate, payload class, and FEC are not negotiated over the air.
 | Field | Allowed values | Meaning |
 |---|---|---|
 | `name` | unique string, `1..31` characters | Profile name used by `modem.profile` and command-line tools. |
-| `modulation` | `qpsk` or `8psk` | QPSK has 4 constellation points and `log2(4) = 2` bits/symbol. 8PSK has 8 points and `log2(8) = 3` bits/symbol. Raw bitrate is `symbol_rate_baud * bits_per_symbol`. |
+| `modulation` | `bpsk`, `qpsk`, `8psk`, or `16psk` | BPSK, QPSK, 8PSK, and 16PSK carry 1, 2, 3, and 4 bits/symbol respectively. Raw bitrate is `symbol_rate_baud * bits_per_symbol`. BPSK is intended for experimental robust/HF profiles; 16PSK requires a substantially cleaner channel. |
 | `symbol_rate_baud` | one of the exact values listed below | Symbol rate. It must produce an integer number of samples per symbol at 48 kHz. |
 | `carrier_hz` | finite number, strictly `300 < value < 3000` | PSK center frequency in the audio baseband. The occupied band must also fit the real radio audio response. |
 | `rrc_rolloff` | finite number, `0 < value <= 1` | Root-raised-cosine rolloff. A smaller value narrows the theoretical occupied band but increases channel and synchronization requirements. |
@@ -99,6 +99,11 @@ The current DSP requires 20 to 80 integer samples per symbol. At the fixed
 All other integer values are rejected, including values close to those in the
 table. Passing validation does not prove that a high-rate profile fits the
 audio bandwidth of a particular NFM radio.
+
+A complete profile must also fit one maximum physical frame in the fixed
+90,000-sample realtime buffer. For example, BPSK-600 with ROBUST FEC and a
+64-byte payload class is rejected because its frame is too long; use
+`bpsk_750_robust64` or `bpsk_1200_robust64` instead.
 
 ### Calculated profile rates
 

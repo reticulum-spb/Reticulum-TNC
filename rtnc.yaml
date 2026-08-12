@@ -12,6 +12,27 @@ modem:
 profiles:
   # fec_mode: 0=NONE (tests), 1=ROBUST TC128 rate 1/2,
   #           2=NORMAL punctured TC128 rate 2/3. FAST is not implemented.
+  # Experimental robust/HF candidates within the fixed realtime buffers.
+  - name: bpsk_750_robust64
+    modulation: bpsk
+    symbol_rate_baud: 750
+    carrier_hz: 1650.0
+    rrc_rolloff: 0.25
+    acquisition_threshold: 0.70
+    training_threshold: 0.55
+    detector_bandwidth_margin: 1.35
+    fec_mode: 1
+    payload_class_bytes: 64
+  - name: bpsk_1200_robust64
+    modulation: bpsk
+    symbol_rate_baud: 1200
+    carrier_hz: 1650.0
+    rrc_rolloff: 0.25
+    acquisition_threshold: 0.70
+    training_threshold: 0.55
+    detector_bandwidth_margin: 1.35
+    fec_mode: 1
+    payload_class_bytes: 64
   - name: qpsk_1200_robust64
     modulation: qpsk
     symbol_rate_baud: 1200
@@ -194,6 +215,28 @@ profiles:
     detector_bandwidth_margin: 1.35
     fec_mode: 1
     payload_class_bytes: 128
+  # Experimental equal-raw-rate comparison with turbo (3000 bit/s).
+  - name: experimental_16psk_750
+    modulation: 16psk
+    symbol_rate_baud: 750
+    carrier_hz: 1650.0
+    rrc_rolloff: 0.25
+    acquisition_threshold: 0.90
+    training_threshold: 0.70
+    detector_bandwidth_margin: 1.35
+    fec_mode: 1
+    payload_class_bytes: 64
+  # Experimental maximum-rate candidate (4000 bit/s raw).
+  - name: experimental_16psk_1000
+    modulation: 16psk
+    symbol_rate_baud: 1000
+    carrier_hz: 1650.0
+    rrc_rolloff: 0.25
+    acquisition_threshold: 0.90
+    training_threshold: 0.70
+    detector_bandwidth_margin: 1.35
+    fec_mode: 1
+    payload_class_bytes: 64
   - name: 8psk_1000_normal64
     modulation: 8psk
     symbol_rate_baud: 1000

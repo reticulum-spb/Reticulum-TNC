@@ -218,6 +218,33 @@ FEC both increased offered airtime efficiency but reduced end-to-end packet
 delivery. The production default remains QPSK-1200 until a longer sensitivity
 waterfall compares it against `turbo` (8PSK-1000 ROBUST/64).
 
+## Experimental 16PSK result
+
+On 2026-08-12, 16PSK was tested in the same `.54` TX to `.197` RX two-radio
+direction after both Orange Pi systems had been restarted. The implementation
+uses LiquidDSP PSK16 soft demapping and preserves four LLR values per symbol
+through the existing FEC input. Both experimental profiles pass deterministic
+audio loopback through a synthetic 300--3000 Hz voice-band filter.
+
+The over-the-air result did not justify promoting either profile:
+
+| Profile | Raw rate | Interface ceiling | OTA result |
+|---|---:|---:|---:|
+| `experimental_16psk_750` ROBUST/64 | 3000 bit/s | 945 bit/s | 0/5 complete 500-byte packets |
+| `experimental_16psk_1000` ROBUST/64 | 4000 bit/s | 1260 bit/s | 0/1 complete 500-byte packets; about 4/8 physical fragments decoded |
+| `turbo` 8PSK-1000 ROBUST/64 control | 3000 bit/s | 1016 bit/s | 1/1 complete 500-byte packet, 8/8 fragments |
+
+There were no audio, decode-queue, or ALSA XRUN drops. For 16PSK-1000 the
+receiver reported 0.991 best acquisition correlation, 0.953 best training
+correlation, and about 16.0 dB average effective SNR, yet missing fragments
+caused reassembly sequence rejection. The immediately following `turbo`
+control delivered the whole packet at only 13.3 dB reported average effective
+SNR. The EVM-derived SNR is therefore not directly comparable across these
+constellations: residual phase error is much more damaging to 16PSK.
+
+The profiles remain explicitly experimental for further controlled channel
+work. `turbo` remains the fastest demonstrated two-radio profile.
+
 ## DireWolf 2400 reference
 
 The deployed DireWolf 1.8.2 configuration uses MFJ-compatible V.26B QPSK at

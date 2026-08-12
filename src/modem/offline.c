@@ -84,14 +84,16 @@ bool rtnc_modem_init_config(rtnc_modem_t *modem, fec_mode_t fec_mode, uint8_t pa
 }
 
 bool rtnc_modem_init_profile(rtnc_modem_t *modem, fec_mode_t fec_mode, uint8_t payload_class_bytes, const rtnc_phy_profile_t *profile) {
-    size_t index;
+    size_t   index;
+    uint32_t bpsk_training_state = 0x9e3779b9U;
     if (modem == NULL || !rtnc_phy_profile_is_valid(profile) ||
         (payload_class_bytes != 64U && payload_class_bytes != 128U) ||
         (fec_mode != FEC_NONE && fec_mode != FEC_LDPC_ROBUST &&
          fec_mode != FEC_LDPC_NORMAL)) {
         return false;
     }
-    if (profile->modulation == RTNC_MODULATION_8PSK && fec_mode == FEC_NONE) {
+    if (profile->modulation != RTNC_MODULATION_BPSK &&
+        profile->modulation != RTNC_MODULATION_QPSK && fec_mode == FEC_NONE) {
         return false;
     }
     (void) memset(modem, 0, sizeof(*modem));
@@ -108,7 +110,12 @@ bool rtnc_modem_init_profile(rtnc_modem_t *modem, fec_mode_t fec_mode, uint8_t p
     }
     for (index = 0U; index < RTNC_MODEM_TRAINING_SYMBOLS; ++index) {
         uint8_t value;
-        if (index < RTNC_MODEM_ACQUISITION_SYMBOLS) {
+        if (modem->profile.bits_per_symbol == 1U) {
+            bpsk_training_state ^= bpsk_training_state << 13U;
+            bpsk_training_state ^= bpsk_training_state >> 17U;
+            bpsk_training_state ^= bpsk_training_state << 5U;
+            value = (uint8_t) (bpsk_training_state & 1U);
+        } else if (index < RTNC_MODEM_ACQUISITION_SYMBOLS) {
             value = (uint8_t) (acquisition_symbols[index] *
                                (modem->profile.bits_per_symbol - 1U));
         } else {
@@ -228,7 +235,7 @@ static bool decode_bytes(rtnc_modem_t *modem, const rtnc_modem_workspace_t *work
     (void) memset(bytes, 0, byte_count);
     for (symbol_index = 0U; symbol_index < symbol_count; ++symbol_index) {
         uint8_t             symbol;
-        float               symbol_llr[3];
+        float               symbol_llr[4];
         float               evm;
         const float complex corrected =
             workspace->recovered[start + symbol_index] / tracking_gain *
@@ -414,7 +421,7 @@ static rtnc_modem_status_t decode_equalizer_fallback(
                 training_error_sum += error;
             } else if (pair >= data_start && equalized_count < required_symbols) {
                 uint8_t       decision;
-                float         decision_llr[3];
+                float         decision_llr[4];
                 float         decision_error;
                 float complex desired_decision;
                 if (decision_directed &&
